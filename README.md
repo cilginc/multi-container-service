@@ -147,3 +147,33 @@ Don't forget this is not production ready configuration.
 ## Setup a remote Linux Server
 Setup your linux server and add your SSH keys into your server.
 
+## Setup a CI/CD pipeline
+1. You need to manage Github Secrets first:
+ - `REMOTE_HOST`:IP of the server
+ - `REMOTE_USER`: User of the server
+ - `SSH_KEY`: Your private SSH key
+ - `SSH_PORT`: Your SSH port 
+Create a github workflow:
+```yaml
+name: Deploy Service
+
+on:
+  push:
+    branches:
+      - main  # Trigger workflow on push to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger on pull request
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute remote SSH commands using password
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: cd ~/multi-container-service && git pull && docker compose down && docker compose up -d --build 
+```
