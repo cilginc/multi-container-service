@@ -1,0 +1,23 @@
+version: '3'
+services:
+  node-service:
+    build: .
+    container_name: node-service
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - node-network
+
+  mongo:
+    image: mongo:latest 
+    container_name: mongo
+    restart: always
+    volumes:
+      - ./data:/data/db
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge
