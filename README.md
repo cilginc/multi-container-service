@@ -101,3 +101,50 @@ In index.js file change this line to this:
 mongoose.connect('mongodb://localhost:27017/todos', {
 mongoose.connect('mongodb://mongo:27017/todos', {
 ```
+
+## Setup a reverse proxy
+1. Choose the right software for reverse proxy
+I recommend nginx.
+
+2. Configure your compose.yaml:
+- Add this lines to your compose.yaml:
+
+```compose.yaml
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx-proxy
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+       - "80:80"
+       - "443:443"
+    networks: 
+      - node-network
+```
+- Delete the `node-service` open ports from compose.yaml
+- Create a nginx directory
+- Inside this directory create a nginx.conf file:
+```conf
+worker_processes auto;
+
+events {
+	worker_connections 1024;
+}
+
+http {
+	server {
+		listen 80;
+		location / {
+			proxy_pass http://node-service;
+			proxy_set_header Host $host;
+		}
+	}
+}
+
+```
+Don't forget this is not production ready configuration.
+
+## Setup a remote Linux Server
+Setup your linux server and add your SSH keys into your server.
+
