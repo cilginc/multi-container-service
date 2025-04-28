@@ -25,17 +25,79 @@ I've used docker image.
 ```bash
 docker run -d -p 27017:27017 mongo
 ```
+3. Change this line in the index.js
+```
+mongoose.connect('mongodb://mongo:27017/todos', {
+mongoose.connect('mongodb://localhost:27017/todos', {
+```
 
-3. Start the server:
+4. Start the server:
 ```bash
 npm start
 ```
 Go to [localhost:3000/todos](http://localhost:3000/todos)
 
-4. Add some data to database
+5. Add some data to database
 
 ```bash
 curl -X POST http://localhost:3000/todos \
      -H "Content-Type: application/json" \
      -d '{"title": "Buy milk"}'
+```
+
+## Dockerize the Project
+
+1. Create a dockerfile:
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD [ "npm", "start" ]
+```
+2. Create a docker compose file:
+```compose.yaml
+version: '3'
+services:
+  node-service:
+    build: .
+    container_name: node-service
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - node-network
+
+  mongo:
+    image: mongo:latest 
+    container_name: mongo
+    restart: always
+    volumes:
+      - ./data:/data/db
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge
+```
+
+3. Create a .dockerignore file:
+
+With this configuration you will save mongodb files to ./data but we don't want to put this file into node-service docker image. So create a .dockerignore file:
+```
+data/
+node_modules/
+compose.yaml
+.gitignore
+```
+
+4. Change the source code to use docker dns:
+In index.js file change this line to this:
+```
+mongoose.connect('mongodb://localhost:27017/todos', {
+mongoose.connect('mongodb://mongo:27017/todos', {
 ```
