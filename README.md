@@ -136,8 +136,7 @@ http {
 	server {
 		listen 80;
 		location / {
-			proxy_pass http://node-service;
-			proxy_set_header Host $host;
+			proxy_pass http://node-service:3000;
 		}
 	}
 }
